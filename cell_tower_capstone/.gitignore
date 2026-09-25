@@ -1,0 +1,6 @@
+.streamlit/secrets.toml
+secrets.toml
+*.pem
+*.key
+__pycache__/
+.DS_Store
