@@ -193,7 +193,7 @@ html, body, [class*="css"] {
     text-align: center;
 }
 </style>
-""", encoding="utf-8")
+""")
 
 # ---------- Connection ----------
 @st.cache_resource
