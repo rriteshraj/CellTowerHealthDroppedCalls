@@ -196,30 +196,30 @@ html, body, [class*="css"] {
 """, unsafe_allow_html=True)
 
 # ---------- Connection ----------
-@st.cache_resource
-def get_connection():
+@st.cache_data(ttl=300)
+def load_data():
     s = st.secrets["snowflake"]
-    kwargs = dict(
+
+    conn = snowflake.connector.connect(
         account=s["account"],
         user=s["user"],
         password=s["password"],
         warehouse=s["warehouse"],
         database=s["database"],
         schema=s["schema"],
+        role=s.get("role"),
     )
-    if s.get("role"):
-        kwargs["role"] = s["role"]
-    return snowflake.connector.connect(**kwargs)
 
-@st.cache_data(ttl=300)
-def load_data():
-    return pd.read_sql("""
-        SELECT
-            TOWER_ID, SITE_NAME, CITY, DISTRICT, CAPACITY_CHANNELS,
-            CALL_DATE, HOUR_OF_DAY, CALLS, DROPPED_CALLS, DROP_RATE,
-            PEAK_CONCURRENT, UTILISATION, AVG_DURATION_SECONDS
-        FROM GOLD_TOWER_HOUR
-    """, get_connection())
+    try:
+        return pd.read_sql("""
+            SELECT
+                TOWER_ID, SITE_NAME, CITY, DISTRICT, CAPACITY_CHANNELS,
+                CALL_DATE, HOUR_OF_DAY, CALLS, DROPPED_CALLS, DROP_RATE,
+                PEAK_CONCURRENT, UTILISATION, AVG_DURATION_SECONDS
+            FROM GOLD_TOWER_HOUR
+        """, conn)
+    finally:
+        conn.close()
 
 # ---------- Load ----------
 try:
